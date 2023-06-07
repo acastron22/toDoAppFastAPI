@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
+# aqui que é criado a tabela ToDo e o q terá cada coluna
 class ToDos(Base):
     __tablename__ = 'ToDos'
 
