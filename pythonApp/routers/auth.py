@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 # pacote usado para usar o hashpasswords
 from passlib.context import CryptContext
 from database import SessionLocal
+from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter()
 
@@ -35,6 +36,15 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
+def authenticateUser(username: str, password: str, db):
+    user = db.query(Users).filter(Users.userName == username).first()
+    if not user:
+        return False
+    if not bcrypt_context.verify(password, user.hashedPassword):
+        return False
+    return True
+
+
 @router.post("/auth", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency,
                       createUserRequest: CreateUserRequest):
@@ -53,3 +63,13 @@ async def create_user(db: db_dependency,
     )
     db.add(createUserModel)
     db.commit()
+
+
+@router.post("/token")
+async def loginForAcessToken(formData: Annotated[OAuth2PasswordRequestForm, Depends()],
+                             db: db_dependency):
+    user = authenticateUser(formData.username, formData.password, db)
+    if not user:
+        return 'Failed authentication'
+    return 'Successful authentication'
+    return formData.username

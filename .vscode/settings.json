@@ -1,3 +1,13 @@
 {
-  "cSpell.words": ["dependency", "deprecated"]
+  "cSpell.words": [
+    "authentication",
+    "dependency",
+    "Depends",
+    "deprecated",
+    "fastapi",
+    "hashpasswords",
+    "passlib",
+    "pydantic",
+    "sqlalchemy"
+  ]
 }
