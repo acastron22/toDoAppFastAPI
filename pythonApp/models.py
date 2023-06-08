@@ -11,7 +11,7 @@ class Users(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True)
-    username = Column(String, unique=True)
+    userName = Column(String, unique=True)
     firstName = Column(String)
     lastName = Column(String)
     hashedPassword = Column(String)
