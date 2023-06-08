@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 from typing import Annotated
-from fastapi import Depends, APIRouter
+from fastapi import Depends, APIRouter, HTTPException
 from starlette import status
 from pydantic import BaseModel
 from models import Users
@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 # pacote usado para usar o hashpasswords
 from passlib.context import CryptContext
 from database import SessionLocal
-from fastapi.security import OAuth2PasswordRequestForm
-from jose import jwt
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from jose import jwt, JWTError
 
 router = APIRouter()
 
@@ -17,6 +17,7 @@ SECRET_KEY = '302c43590b5cebc3125b2e771b66d8d8e5089eb8ff7a8791513e6019a1122608'
 ALGORITHM = 'HS256'
 
 bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+oauth2Bearer = OAuth2PasswordBearer(tokenUrl='token')
 
 
 class CreateUserRequest(BaseModel):
@@ -62,6 +63,20 @@ def createAccessToken(username: str, userId: int, expiresDelta: timedelta):
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
+async def getCurrentUser(token: Annotated[str, Depends(oauth2Bearer)]):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get('sub')
+        userId: int = payload.get('id')
+        if username is None or userId is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail='Could not validate user.')
+        return {'username': username, 'id': userId}
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail='Could not validate user.')
+
+
 @router.post("/auth", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency,
                       createUserRequest: CreateUserRequest):
@@ -84,7 +99,7 @@ async def create_user(db: db_dependency,
 
 @router.post("/token", response_model=Token)
 async def loginForAccessToken(formData: Annotated[OAuth2PasswordRequestForm, Depends()],
-                             db: db_dependency):
+                              db: db_dependency):
     user = authenticateUser(formData.username, formData.password, db)
     if not user:
         return 'Failed authentication'
