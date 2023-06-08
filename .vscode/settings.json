@@ -1,11 +1,14 @@
 {
   "cSpell.words": [
+    "acess",
     "authentication",
+    "bearer",
     "dependency",
     "Depends",
     "deprecated",
     "fastapi",
     "hashpasswords",
+    "jose",
     "passlib",
     "pydantic",
     "sqlalchemy"
