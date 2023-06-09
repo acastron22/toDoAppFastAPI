@@ -1,14 +1,14 @@
 from datetime import timedelta, datetime
 from typing import Annotated
 from fastapi import Depends, APIRouter, HTTPException
-from starlette import status
 from pydantic import BaseModel
-from models import Users
 from sqlalchemy.orm import Session
-# pacote usado para usar o hashpasswords
-from passlib.context import CryptContext
+from starlette import status
 from database import SessionLocal
+from models import Users
+from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+# pacote usado para usar o hashpasswords
 from jose import jwt, JWTError
 
 router = APIRouter(

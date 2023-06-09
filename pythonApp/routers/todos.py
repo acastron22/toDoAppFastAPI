@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from starlette import status
 from models import ToDos
 from database import SessionLocal
-
+from .auth import getCurrentUser
 
 
 router = APIRouter()
@@ -20,6 +20,7 @@ def get_db():
 
 
 db_dependency = Annotated[Session, Depends(get_db)]
+userDependency = Annotated[dict, Depends(getCurrentUser)]
 
 
 # aqui está sendo criado o request do post. O que o post precisa ter para aceitar(os nomes devem
@@ -50,8 +51,12 @@ async def read_todo(db: db_dependency, todo_id: int = Path(gt=0)):
 
 
 @router.post("/todo", status_code=status.HTTP_201_CREATED)
-async def create_todo(db: db_dependency, todo_request: todoRequest):
-    todo_model = ToDos(**todo_request.dict())
+async def create_todo(user: userDependency,
+                      db: db_dependency,
+                      todo_request: todoRequest):
+    if user is None:
+        raise HTTPException(status_code=401, detail='Authentication Failed')
+    todo_model = ToDos(**todo_request.dict(), ownerId=user.get('id'))
     db.add(todo_model)
     db.commit()
 
